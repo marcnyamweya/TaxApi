@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Visual Studio
+*.slnx
+.vscode/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# Rider
+.idea/
+*.sln.iml
+
+# User-specific files
+*.user
+*.suo
+
+# Environment-specific settings
+appsettings.Development.json
+Properties/launchSettings.json
