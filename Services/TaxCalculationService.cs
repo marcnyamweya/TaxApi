@@ -9,23 +9,22 @@ public interface ITaxCalculationService
 
 public class TaxCalculationService : ITaxCalculationService
 {
-    // ── 2024 US Federal Income Tax Brackets (MFJ single filer) ──────────────
-    private static readonly (decimal UpTo, decimal Rate)[] PersonalBrackets2024 =
+    // ── Kenya 2024 Personal Income Tax (Monthly PAYE Bands) ──────────────────
+    private static readonly (decimal UpTo, decimal Rate)[] KenyaPersonalBrackets2024 =
     {
-        (11_600m,  0.10m),
-        (47_150m,  0.12m),
-        (100_525m, 0.22m),
-        (191_950m, 0.24m),
-        (243_725m, 0.32m),
-        (609_350m, 0.35m),
-        (decimal.MaxValue, 0.37m)
+        (24_000m,  0.10m),    // 0 – 24,000: 10%
+        (32_333m,  0.25m),    // 24,001 – 32,333: 25%
+        (decimal.MaxValue, 0.30m)  // Above 32,333: 30%
     };
 
-    // ── US Federal Corporate Tax: flat 21% (TCJA 2017) ──────────────────────
-    private const decimal CorporateRate = 0.21m;
+    // ── Kenya Personal Relief (annual: KES 28,800 or monthly: KES 2,400) ──────
+    private const decimal AnnualPersonalRelief = 28_800m;
 
-    // ── Standard EU VAT (20%) — overridden by submission's VatRate if set ───
-    private const decimal DefaultVatRate = 0.20m;
+    // ── Kenya Corporate Tax Rate: 30% ────────────────────────────────────────
+    private const decimal CorporateRate = 0.30m;
+
+    // ── Kenya Standard VAT Rate: 16% ─────────────────────────────────────────
+    private const decimal DefaultVatRate = 0.16m;
 
     public (decimal liability, decimal effectiveRate) Calculate(TaxSubmission submission)
     {
@@ -38,7 +37,7 @@ public class TaxCalculationService : ITaxCalculationService
         };
     }
 
-    // Progressive bracket calculation (IRS 2024 single-filer brackets)
+    // Kenya progressive bracket calculation with personal relief
     private static (decimal, decimal) CalculatePersonalIncome(TaxSubmission sub)
     {
         var income = sub.TaxableIncome;
@@ -47,7 +46,7 @@ public class TaxCalculationService : ITaxCalculationService
         decimal tax = 0m;
         decimal previous = 0m;
 
-        foreach (var (upTo, rate) in PersonalBrackets2024)
+        foreach (var (upTo, rate) in KenyaPersonalBrackets2024)
         {
             if (income <= previous) break;
 
@@ -57,11 +56,14 @@ public class TaxCalculationService : ITaxCalculationService
             previous = upTo;
         }
 
+        // Apply annual personal relief (KES 28,800)
+        tax = Math.Max(0, tax - AnnualPersonalRelief);
+
         var effectiveRate = income > 0 ? Math.Round(tax / income, 4) : 0m;
         return (Math.Round(tax, 2), effectiveRate);
     }
 
-    // Flat 21% corporate rate on taxable income
+    // Kenya flat 30% corporate tax rate on taxable income
     private static (decimal, decimal) CalculateCorporate(TaxSubmission sub)
     {
         var income = sub.TaxableIncome;
@@ -71,7 +73,7 @@ public class TaxCalculationService : ITaxCalculationService
         return (tax, CorporateRate);
     }
 
-    // Output VAT on vatable sales
+    // Kenya VAT (16% standard, or submission override)
     private static (decimal, decimal) CalculateVat(TaxSubmission sub)
     {
         var sales   = sub.VatableSales ?? sub.GrossIncome;

@@ -540,38 +540,51 @@ Response includes `X-Total-Count` header with total record count.
 
 ## Tax Calculation Logic
 
-### Personal Income Tax — IRS 2024 Federal Brackets (Single Filer)
+### Personal Income Tax — Kenya PAYE (2024 Rates)
 
-Uses progressive marginal rates — each rate applies only to income within that bracket range, not the total.
+Kenya uses progressive marginal tax bands. Each rate applies only to income within its band.
 
-| Taxable Income | Marginal Rate |
-|---|---|
-| $0 – $11,600 | 10% |
-| $11,601 – $47,150 | 12% |
-| $47,151 – $100,525 | 22% |
-| $100,526 – $191,950 | 24% |
-| $191,951 – $243,725 | 32% |
-| $243,726 – $609,350 | 35% |
-| Over $609,350 | 37% |
+#### Monthly PAYE Bands
 
-**Example** — Taxable income of $80,400 (gross $95,000 minus $14,600 standard deduction):
+| Taxable Income (KES) | Rate |
+|----------------------|------|
+| 0 – 24,000           | 10%  |
+| 24,001 – 32,333      | 25%  |
+| Above 32,333         | 30%  |
 
-| Bracket | Income in bracket | Rate | Tax |
-|---|---|---|---|
-| $0 – $11,600 | $11,600 | 10% | $1,160 |
-| $11,601 – $47,150 | $35,550 | 12% | $4,266 |
-| $47,151 – $80,400 | $33,250 | 22% | $7,315 |
-| **Total** | | | **$12,741** |
+Every resident individual receives a **personal relief of KES 2,400 per month** (KES 28,800 annually), deducted from computed tax.
 
-Effective rate: $12,741 / $80,400 = **15.85%**
+##### Example — Monthly Income of KES 95,000
 
-### Corporate Tax
+| Band | Income in Band | Rate | Tax |
+|------|---------------|------|------|
+| 0 – 24,000 | 24,000 | 10% | 2,400 |
+| 24,001 – 32,333 | 8,333 | 25% | 2,083 |
+| Above 32,333 | 62,667 | 30% | 18,800 |
+| **Total Before Relief** | | | **23,283** |
 
-Flat **21%** on taxable income (TCJA 2017 US federal rate). Business rule: corporate deductions cannot exceed 90% of gross income.
+Apply personal relief:
 
-### VAT
+23,283 − 2,400 = **KES 20,883**
 
-`VatableSales × (VatRate / 100)`. Defaults to 20% if no rate is provided. If `vatableSales` is omitted, `grossIncome` is used as the tax base.
+Effective tax rate ≈ **21.98%**
+
+---
+
+### Corporate Tax (Kenya)
+
+Resident companies: **30%**  
+Non-resident companies: **37.5%**
+
+Applied to taxable profit (Gross Income − Allowable Expenses).
+
+---
+
+### VAT (Kenya)
+
+Standard VAT Rate: **16%**
+
+If VAT-exclusive:
 
 ---
 
