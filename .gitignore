@@ -20,3 +20,6 @@
 # Environment-specific settings
 appsettings.Development.json
 Properties/launchSettings.json
+
+#Migrations
+Migrations/

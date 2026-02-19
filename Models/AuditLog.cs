@@ -6,10 +6,10 @@ public class AuditLog
     public int? ClientId { get; set; }
     public int? TaxSubmissionId { get; set; }
     public AuditEventType EventType { get; set; }
-    public string? Description { get; set; }
-    public string? Details { get; set; } // JSON string for complex data
+    public string Action { get; set; } = null!;
+    public string? PerformedBy { get; set; }
+    public string? Details { get; set; }
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
-    public string? ActorIdentity { get; set; } // User or system identifier
 
     // Navigation properties
     public Client? Client { get; set; }
