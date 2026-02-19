@@ -42,7 +42,7 @@ public class ClientsController : ControllerBase
         return client is null ? NotFound() : Ok(ToResponse(client));
     }
 
-    /// <summary>Registers a new client.</summary>
+    /// <summary>Registers a new client</summary>
     [HttpPost]
     [ProducesResponseType<ClientResponse>(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
