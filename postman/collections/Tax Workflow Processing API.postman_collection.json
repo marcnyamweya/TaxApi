@@ -1,0 +1,498 @@
+{
+  "info": {
+    "_postman_id": "97cbdda2-c40c-4097-9f73-5f5ccf8836d4",
+    "name": "Tax Workflow Processing API",
+    "description": "Collection to validate the Tax Workflow Processing API.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Clients",
+      "item": [
+        {
+          "name": "Register Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"clientId\", jsonData.id);",
+                  "pm.test(\"Client ID is stored\", function () {",
+                  "    pm.expect(jsonData.id).to.be.a('number');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "953a2318-8232-4eb7-8d75-77b8463c7c9a"
+              }
+            }
+          ],
+          "id": "b1e3133b-67fb-4cb7-bc64-1910eac7d5b6",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fullName\": \"John Doe\",\n    \"email\": \"john.doe{{$timestamp}}@example.com\",\n    \"taxIdentificationNumber\": \"TIN-{{$timestamp}}\",\n    \"clientType\": \"Individual\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/Clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Clients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Clients",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is an array\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "47b9e435-b451-4745-8869-4ea398fd457f"
+              }
+            }
+          ],
+          "id": "80e1e338-b130-40e3-8e94-ab93e92a2380",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Clients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Client By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const jsonData = pm.response.json();",
+                  "pm.test(\"Correct client returned\", function () {",
+                  "    pm.expect(jsonData.id).to.eql(pm.collectionVariables.get(\"clientId\"));",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "ac039729-6a4e-4af6-8a24-2f5869df2a13"
+              }
+            }
+          ],
+          "id": "01c1cd00-0d9e-49eb-869d-53b7fa88b77f",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/Clients/{{clientId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "Clients",
+                "{{clientId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "082f5344-2e8c-411b-94b2-2944a4c4eaf7"
+    },
+    {
+      "name": "Tax Submissions",
+      "item": [
+        {
+          "name": "Create Tax Submission",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "const jsonData = pm.response.json();",
+                  "pm.collectionVariables.set(\"submissionId\", jsonData.id);",
+                  "pm.test(\"Status is Submitted\", function () {",
+                  "    pm.expect(jsonData.status).to.equal(\"Submitted\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "8e746554-f5d3-41a6-9191-24ee3c3cf912"
+              }
+            }
+          ],
+          "id": "58521cda-ad6b-4b58-a812-d45e7e5ee7ee",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"clientId\": {{clientId}},\n    \"taxType\": \"PersonalIncome\",\n    \"taxYear\": 2023,\n    \"grossIncome\": 100000,\n    \"deductions\": 20000\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TaxSubmissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "TaxSubmissions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Submissions",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "833b2a8a-6902-4ecb-834c-d5c461441098"
+              }
+            }
+          ],
+          "id": "8f1cee0f-7a7a-42c7-a73d-4c96d4b431e1",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TaxSubmissions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "TaxSubmissions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Submission By ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "9ff40e23-baa2-41eb-9675-cb7bfdff153b"
+              }
+            }
+          ],
+          "id": "d9de07d1-e30a-45b8-9927-a4f1713a5422",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TaxSubmissions/{{submissionId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "TaxSubmissions",
+                "{{submissionId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transition to Under Review",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const jsonData = pm.response.json();",
+                  "pm.test(\"Status is UnderReview\", function () {",
+                  "    pm.expect(jsonData.status).to.equal(\"UnderReview\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "cedfb9b1-c078-411a-811b-25865c173be7"
+              }
+            }
+          ],
+          "id": "9cef6c80-05ed-47ad-ae97-7679e7defb7b",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newStatus\": \"UnderReview\",\n    \"performedBy\": \"Admin\",\n    \"reviewerNotes\": \"Reviewing the data.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TaxSubmissions/{{submissionId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "TaxSubmissions",
+                "{{submissionId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transition to Approved",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const jsonData = pm.response.json();",
+                  "pm.test(\"Status is Approved\", function () {",
+                  "    pm.expect(jsonData.status).to.equal(\"Approved\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "73033ddb-65b5-4561-a5ae-a28077f02f6a"
+              }
+            }
+          ],
+          "id": "696a7b30-63a7-4f9a-956d-a95ca56e24a5",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newStatus\": \"Approved\",\n    \"performedBy\": \"Admin\",\n    \"reviewerNotes\": \"All data looks correct.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TaxSubmissions/{{submissionId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "TaxSubmissions",
+                "{{submissionId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transition to Filed",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const jsonData = pm.response.json();",
+                  "pm.test(\"Status is Filed\", function () {",
+                  "    pm.expect(jsonData.status).to.equal(\"Filed\");",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "00e0f6aa-313d-4586-ae87-4db7e625f5e7"
+              }
+            }
+          ],
+          "id": "a26f8f9a-1823-4152-ab1e-0ae942b1c017",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newStatus\": \"Filed\",\n    \"performedBy\": \"System\",\n    \"reviewerNotes\": \"Successfully filed.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/TaxSubmissions/{{submissionId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "TaxSubmissions",
+                "{{submissionId}}",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Submission Audit Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Logs are returned\", function () {",
+                  "    pm.expect(pm.response.json()).to.be.an('array').that.is.not.empty;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "479fe85d-14ab-40a4-aa2c-ca745bb183d1"
+              }
+            }
+          ],
+          "id": "bd16d132-3c4a-48cb-ab8c-f5e6ca3e2e2b",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/TaxSubmissions/{{submissionId}}/audit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "TaxSubmissions",
+                "{{submissionId}}",
+                "audit"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "39e82818-3e6a-447d-9734-91e5def87c15"
+    },
+    {
+      "name": "Audit Logs",
+      "item": [
+        {
+          "name": "Get All Audit Logs",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Total count header is present\", function () {",
+                  "    pm.expect(pm.response.headers.get('X-Total-Count')).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript",
+                "id": "306738e2-ad76-4929-bbac-cbf509345901"
+              }
+            }
+          ],
+          "id": "b9ce258b-b46d-4464-99bd-ce572d5d47b0",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/AuditLogs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "AuditLogs"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "id": "f0aa7c9e-fd07-476b-b860-3189d90edf1c"
+    }
+  ],
+  "variable": [
+    {
+      "id": "be5a7d70-3d7a-4e4d-bdf4-3905f1cf48b0",
+      "key": "baseUrl",
+      "value": "http://localhost:5166"
+    },
+    {
+      "id": "b7ee899a-6204-4433-a925-4e0f4c6886c6",
+      "key": "clientId",
+      "value": ""
+    },
+    {
+      "id": "0d4ef5c2-600e-4946-82a4-cef884a472b5",
+      "key": "submissionId",
+      "value": ""
+    }
+  ]
+}

@@ -207,13 +207,22 @@ Invalid transitions return `400 Bad Request` with the list of valid next states 
 
 ## Testing with Postman
 
-Import `TaxApi.postman_collection.json` into Postman. The collection includes pre-built requests for the full workflow:
+A comprehensive Postman collection is provided in `TaxApi_Postman_Collection.json` to validate the full API workflow and all endpoints.
 
-1. Create Individual and Corporate clients
-2. Submit Personal Income, Corporate, and VAT returns
-3. Walk a submission through every status transition
-4. Inspect the audit trail at each step
-5. Query audit logs by event type
+### Setup
+1.  **Import** `TaxApi_Postman_Collection.json` into Postman.
+2.  The collection uses a `baseUrl` variable (default: `http://localhost:5166`). Ensure your API is running.
+
+### Workflow Validation
+The collection is designed to be run in sequence:
+1.  **Register Client:** Creates a new individual client and stores the `clientId` in a collection variable.
+2.  **Submit Tax Data:** Submits a tax return for the new client and stores the `submissionId`.
+3.  **Workflow Transitions:** Advances the submission through the lifecycle:
+    -   `Submitted` → `UnderReview`
+    -   `UnderReview` → `Approved`
+    -   `Approved` → `Filed`
+4.  **Audit Trail:** Verifies that audit logs are generated for each step.
+5.  **Global Audit Logs:** Retrieves all audit logs to ensure traceability.
 
 ---
 
