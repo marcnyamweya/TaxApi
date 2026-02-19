@@ -23,3 +23,6 @@ Properties/launchSettings.json
 
 #Migrations
 Migrations/
+
+#Infrastructure
+Infrastructure/

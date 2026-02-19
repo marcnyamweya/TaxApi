@@ -8,10 +8,16 @@ using TaxApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ────────────────────────────────────────────────────────────────
+// In Production (Azure), the connection string is injected via App Service
+// Configuration > Connection strings (set by deploy.sh).
+// In Development, it is read from appsettings.Development.json.
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
-        sql => sql.EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(5), errorNumbersToAdd: null)
+        sql => sql.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)
     ));
 
 // ── Application Services ────────────────────────────────────────────────────
@@ -22,7 +28,8 @@ builder.Services.AddSingleton<ITaxCalculationService, TaxCalculationService>();
 builder.Services.AddControllers()
     .AddJsonOptions(o =>
     {
-        o.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        o.JsonSerializerOptions.Converters.Add(
+            new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
 // ── Swagger / OpenAPI ───────────────────────────────────────────────────────
@@ -39,13 +46,12 @@ builder.Services.AddSwaggerGen(c =>
         Contact     = new OpenApiContact { Name = "Tax API Team" }
     });
 
-    // Include XML comments if present
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath)) c.IncludeXmlComments(xmlPath);
 });
 
-// ── CORS (for Postman / dev front-end) ─────────────────────────────────────
+// ── CORS ────────────────────────────────────────────────────────────────────
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
@@ -54,25 +60,35 @@ var app = builder.Build();
 // ── Middleware Pipeline ──────────────────────────────────────────────────────
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+// Swagger available in all environments for this project.
+// Wrap in if (app.Environment.IsDevelopment()) to restrict in future.
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tax API v1");
-        c.RoutePrefix = string.Empty; // Swagger at root
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tax API v1");
+    c.RoutePrefix = string.Empty;
+});
 
 app.UseHttpsRedirection();
 app.UseCors();
 app.MapControllers();
 
-// ── Auto-apply EF Migrations on startup (dev convenience) ───────────────────
+// ── Auto-apply EF Migrations on startup ─────────────────────────────────────
+// EF tracks applied migrations — safe to run on every startup.
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    var db     = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        db.Database.Migrate();
+        logger.LogInformation("Database migrations applied successfully.");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Failed to apply database migrations on startup.");
+        throw;
+    }
 }
 
 app.Run();
