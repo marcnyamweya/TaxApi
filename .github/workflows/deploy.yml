@@ -8,11 +8,12 @@ on:
 
 env:
   DOTNET_VERSION: '10.0.x'
-  APP_NAME: 'tax-workflow-api'        # Must match your App Service name
+  APP_NAME: 'tax-workflow-api'
   RESOURCE_GROUP: 'tax-api-rg-centralus'
+  SOLUTION: 'TaxApi.sln'
+  PROJECT: 'TaxApi.csproj'
 
 jobs:
-  # ── Build & Test ────────────────────────────────────────────────────────────
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -26,14 +27,14 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore dependencies (solution)
+        run: dotnet restore ${{ env.SOLUTION }}
 
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
+      - name: Build (solution)
+        run: dotnet build ${{ env.SOLUTION }} --configuration Release --no-restore
 
-      - name: Publish
-        run: dotnet publish --configuration Release --no-build --output ./publish
+      - name: Publish (web project)
+        run: dotnet publish ${{ env.PROJECT }} --configuration Release --no-build --output ./publish
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -41,7 +42,6 @@ jobs:
           name: published-app
           path: ./publish
 
-  # ── Deploy (only on push to main) ──────────────────────────────────────────
   deploy:
     name: Deploy to Azure
     runs-on: ubuntu-latest
@@ -66,9 +66,18 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure App Service (RBAC zipdeploy)
+      - name: Ensure Web App is running
         run: |
-          az webapp deployment source config-zip \
+          STATE=$(az webapp show -g ${{ env.RESOURCE_GROUP }} -n ${{ env.APP_NAME }} --query state -o tsv)
+          echo "Current state: $STATE"
+          if [ "$STATE" != "Running" ]; then
+            az webapp start -g ${{ env.RESOURCE_GROUP }} -n ${{ env.APP_NAME }}
+          fi
+
+      - name: Deploy to Azure App Service (RBAC zip)
+        run: |
+          az webapp deploy \
             --resource-group ${{ env.RESOURCE_GROUP }} \
             --name ${{ env.APP_NAME }} \
-            --src publish.zip
+            --src-path publish.zip \
+            --type zip
