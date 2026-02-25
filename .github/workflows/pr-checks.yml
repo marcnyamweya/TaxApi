@@ -1,0 +1,44 @@
+name: PR Checks
+
+on:
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  lint-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore TaxApi.sln
+
+      - name: Check formatting
+        run: dotnet format TaxApi.sln --verify-no-changes
+
+      - name: Build
+        run: dotnet build TaxApi.sln --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test TaxApi.sln --configuration Release --no-build \
+               --logger "trx;LogFileName=results.trx" \
+               --collect:"XPlat Code Coverage"
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results
+          path: '**/*.trx'
+          reporter: dotnet-trx
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
